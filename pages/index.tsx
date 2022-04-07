@@ -3,7 +3,7 @@ import Head from 'next/head'
 import useSWR from 'swr'
 import styles from '../styles/Home.module.css'
 import axios from 'axios'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { i18n, useTranslation } from 'next-i18next'
 import { useRouter } from 'next/router'
 
@@ -12,19 +12,22 @@ const Home: NextPage = () => {
   const url = 'https://gist.githubusercontent.com/bu3alwa/145414b78718a0749f6d6a4148d1b779/raw/9da29960ed7ad898d0f43f6f4eee9a0199edaef3/translation.json'
   const fetcher = async (url: string) => await axios.get(url).then((res) => res.data)
   const { locale } = useRouter()
+  const [mounted, setMounted] = useState(false)
 
   const { data, error } = useSWR(url, (url) => fetcher(url))
 
   useEffect(() => {
     if (!data || !locale) return
     console.log(data)
+    console.log(locale)
     console.log(i18n)
     i18n?.addResourceBundle(locale, 'translation', data, true, true) 
-  })
+    setMounted(true)
+  }, [mounted, data, locale])
 
   const { t, ready } = useTranslation('translation')
 
-  if (!ready) return <div>Loading...</div>
+  if (!ready || !mounted) return <div>Loading...</div>
 
   return (
     <div className={styles.container}>
@@ -37,7 +40,7 @@ const Home: NextPage = () => {
       <main className={styles.main}>
         <div>
           <p>
-            {t('name') as string}
+            {ready && t('name') as string}
           </p>
         </div>
       </main>
@@ -46,3 +49,12 @@ const Home: NextPage = () => {
 }
 
 export default Home
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+
+export async function getServerSideProps({ locale }: { locale: string }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, [])),
+    },
+  };
+}
