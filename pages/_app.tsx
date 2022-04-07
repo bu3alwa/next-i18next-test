@@ -1,8 +1,11 @@
-import '../styles/globals.css'
+import { appWithTranslation } from 'next-i18next'
 import type { AppProps } from 'next/app'
+import { SWRConfig } from 'swr'
 
-function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+const MyApp = ({ Component, pageProps }: AppProps) => {
+  return (
+    <Component {...pageProps} />
+  )
 }
 
-export default MyApp
+export default appWithTranslation(MyApp)
